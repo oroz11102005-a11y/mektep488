@@ -343,7 +343,7 @@ window.renderResultsTable = function() {
   `).join("");
 };
 
-// Сүрөт файлды окуу (компрессия менен Firestore лимитине батуу үчүн)
+// Сүрөт файлды окуу (Firestore 1MB лимитине батуу үчүн катуу кысуу)
 window.handleFileInput = function(inputEl, targetInputId) {
   const file = inputEl.files && inputEl.files[0];
   if (!file) return;
@@ -353,7 +353,7 @@ window.handleFileInput = function(inputEl, targetInputId) {
     const img = new Image();
     img.onload = function() {
       const canvas = document.createElement("canvas");
-      const maxDim = 700;
+      const maxDim = 450;
       let width = img.width;
       let height = img.height;
 
@@ -369,7 +369,13 @@ window.handleFileInput = function(inputEl, targetInputId) {
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.55);
+
+      if (dataUrl.length > 750000) {
+        alert("Бул сүрөт өтө чоң экен! Башка кичирээк сүрөт тандаңыз же URL шилтемесин коюңуз.");
+        inputEl.value = "";
+        return;
+      }
 
       const targetEl = document.getElementById(targetInputId);
       if (targetEl) {
