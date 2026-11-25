@@ -326,7 +326,7 @@ window.renderResultsTable = function() {
 
   const tbody = document.getElementById("results-table-body");
   if (filtered.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7">Жыйынтыктар табылган жок.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8">Жыйынтыктар табылган жок.</td></tr>';
     return;
   }
 
@@ -339,8 +339,26 @@ window.renderResultsTable = function() {
       <td>${r.score}</td>
       <td><strong>${r.percent}%</strong></td>
       <td>${r.date}</td>
+      <td><button class="btn btn-danger" style="padding:4px 10px;font-size:0.82rem;" onclick="deleteResult('${r.id}')">Өчүрүү</button></td>
     </tr>
   `).join("");
+};
+
+window.deleteResult = async function(id) {
+  if (!confirm("Бул жыйынтыкты өчүрөсүзбү?")) return;
+  await deleteDoc(doc(db, "results", id));
+  await loadData();
+  renderResultsTable();
+};
+
+window.clearAllResults = async function() {
+  if (!confirm("Чындап эле бардык жыйынтыктарды өчүрүп, тизмени тазалайсызбы?")) return;
+  for (const r of allResults) {
+    await deleteDoc(doc(db, "results", r.id));
+  }
+  await loadData();
+  renderResultsTable();
+  alert("Бардык жыйынтыктар тазаланды!");
 };
 
 // Сүрөт файлды окуу (Firestore 1MB лимитине батуу үчүн катуу кысуу)
@@ -439,7 +457,7 @@ document.getElementById("add-question-form").addEventListener("submit", async (e
   alert("Суроо онлайн базага ийгиликтүү кошулду!");
 });
 
-// Баарын бир киргизүү (Топтом)
+// Баарын бир киргизүү (Топтом — көп саптуу коддорду да колдойт)
 document.getElementById("bulk-question-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const subject = currentTeacher.subject !== "ALL"
@@ -453,13 +471,36 @@ document.getElementById("bulk-question-form").addEventListener("submit", async (
   let addedCount = 0;
 
   for (const block of blocks) {
-    const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
+    const lines = block.split("\n").map(l => l.trimEnd()).filter(l => l.trim() !== "");
     if (lines.length < 6) continue;
 
-    const qText = lines[0].replace(/^\d+[\.)]\s*/, "").trim();
-    const opts = [1, 2, 3, 4].map(i => lines[i].replace(/^[АБВГABCDабвгabcd][\.)]\s*/, "").trim());
-    const ansLine = lines[5].replace(/^жообу?\s*[:\-]?\s*/i, "").trim().toUpperCase();
+    const ansIdx = lines.findIndex(l => /^жообу?\s*[:\-]?/i.test(l.trim()));
+    if (ansIdx < 5) continue;
+
+    const ansLine = lines[ansIdx].replace(/^жообу?\s*[:\-]?\s*/i, "").trim().toUpperCase();
     const correctIdx = letterMap[ansLine] !== undefined ? letterMap[ansLine] : 0;
+
+    // Жообу сабынан жогору турган 4 сап — А, Б, В, Г варианттары
+    const optLines = lines.slice(ansIdx - 4, ansIdx);
+    const opts = optLines.map(o => o.trim().replace(/^[АБВГABCDабвгabcd][\.)]\s*/, "").trim());
+
+    // Суроо + астындагы код саптары
+    const qLines = lines.slice(0, ansIdx - 4);
+    if (qLines.length === 0) continue;
+
+    qLines[0] = qLines[0].trim().replace(/^\d+[\.)]\s*/, "").trim();
+    const qText = qLines
+      .map((line, i) => {
+        if (i === 0) return line;
+        const escaped = line
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/^\s{4}/g, "&nbsp;&nbsp;&nbsp;&nbsp;")
+          .replace(/^\s{2}/g, "&nbsp;&nbsp;");
+        return `<br><code>${escaped}</code>`;
+      })
+      .join("");
 
     await addDoc(collection(db, "questions"), {
       subject,
@@ -474,7 +515,7 @@ document.getElementById("bulk-question-form").addEventListener("submit", async (
   }
 
   if (addedCount === 0) {
-    alert("Формат туура келбей калды. Ар бир суроо: суроо, А, Б, В, Г варианттары жана 'Жообу: А' саптарынан турсун.");
+    alert("Формат туура келбей калды. Ар бир суроо: суроо (жана код саптары), А, Б, В, Г варианттары жана 'Жообу: А' саптарынан турсун.");
     return;
   }
 
