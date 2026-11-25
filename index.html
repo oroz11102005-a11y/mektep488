@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>№48 М.Нурбаев атындагы ЖББММ — Онлайн Тест</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Математикалык жана химиялык формулалар үчүн (MathJax) -->
   <script>
     window.MathJax = {
       tex: {
@@ -18,7 +17,6 @@
 </head>
 <body>
 
-  <!-- Жогорку панель -->
   <header class="navbar">
     <div class="container nav-content">
       <div class="brand" onclick="showView('student-home')">
@@ -156,6 +154,7 @@
             <option value="all">Бардык предметтер</option>
           </select>
           <button class="btn btn-success" onclick="exportToCSV()">📥 Excel (CSV) жүктөө</button>
+          <button class="btn btn-danger" onclick="clearAllResults()">🗑️ Баарын тазалоо</button>
         </div>
 
         <div class="table-responsive">
@@ -169,10 +168,11 @@
                 <th>Упай</th>
                 <th>Пайыз</th>
                 <th>Убактысы</th>
+                <th>Аракет</th>
               </tr>
             </thead>
             <tbody id="results-table-body">
-              <tr><td colspan="7">Маалыматтар жүктөлүүдө...</td></tr>
+              <tr><td colspan="8">Маалыматтар жүктөлүүдө...</td></tr>
             </tbody>
           </table>
         </div>
@@ -185,7 +185,7 @@
           <button type="button" id="mode-bulk-btn" class="btn btn-outline" onclick="switchQuestionMode('bulk')">Баарын бир киргизүү (Топтом)</button>
         </div>
 
-        <!-- РЕЖИМ 1: БИР СУРОО (СҮРӨТ ЖАНА ФОРМУЛА МЕНЕН) -->
+        <!-- РЕЖИМ 1: БИР СУРОО -->
         <form id="add-question-form" class="form-grid box-light">
           <h3>Жаңы суроо кошуу</h3>
           <p class="hint-text">
@@ -228,7 +228,6 @@
           </div>
 
           <div class="options-grid-detailed">
-            <!-- Вариант А -->
             <div class="opt-card">
               <label>А) Вариант 1:</label>
               <input type="text" id="q-opt0" placeholder="Текст же $формула$" required>
@@ -238,7 +237,6 @@
               </div>
             </div>
 
-            <!-- Вариант Б -->
             <div class="opt-card">
               <label>Б) Вариант 2:</label>
               <input type="text" id="q-opt1" placeholder="Текст же $формула$" required>
@@ -248,7 +246,6 @@
               </div>
             </div>
 
-            <!-- Вариант В -->
             <div class="opt-card">
               <label>В) Вариант 3:</label>
               <input type="text" id="q-opt2" placeholder="Текст же $формула$" required>
@@ -258,7 +255,6 @@
               </div>
             </div>
 
-            <!-- Вариант Г -->
             <div class="opt-card">
               <label>Г) Вариант 4:</label>
               <input type="text" id="q-opt3" placeholder="Текст же $формула$" required>
@@ -286,13 +282,14 @@
         <form id="bulk-question-form" class="form-grid box-light hidden">
           <h3>Бир нече суроону баарын бир киргизүү</h3>
           <p class="hint-text">
-            Предметти жана классты тандап, төмөнкү кутучага суроолорду бош сап менен бөлүп жазыңыз. Ар бир суроо төмөнкү үлгүдө болушу керек:<br>
-            <code>Суроонун тексти (же $формула$)</code><br>
+            Предметти жана классты тандап, төмөнкү кутучага суроолорду бош сап менен бөлүп жазыңыз. Программа коддорун суроонун астына бир нече сап кылып жаза берсеңиз болот:<br>
+            <code>1. Суроонун тексти</code><br>
+            <code>x = 10</code> (керек болсо)<br>
             <code>А) 1-вариант</code><br>
             <code>Б) 2-вариант</code><br>
             <code>В) 3-вариант</code><br>
             <code>Г) 4-вариант</code><br>
-            <code>Жообу: А</code> (же Б, В, Г)
+            <code>Жообу: А</code>
           </p>
 
           <div class="two-col-grid">
@@ -317,25 +314,21 @@
 
           <div class="form-group">
             <label>Суроолордун топтому:</label>
-            <textarea id="bulk-text" rows="12" placeholder="1. Күн системасындагы эң чоң планета кайсы?
-А) Марс
-Б) Юпитер
-В) Сатурн
-Г) Венера
-Жообу: Б
-
-2. $x^2 - 9 = 0$ теңдемесинин оң тамыры кайсы?
-А) 2
-Б) 3
-В) 4
-Г) 9
-Жообу: Б" required></textarea>
+            <textarea id="bulk-text" rows="12" placeholder="1. Төмөнкү Python программасы эмнени чыгарат?
+x = 17
+y = 4
+print(x // y)
+А) 4
+Б) 1
+В) 4.25
+Г) 17
+Жообу: А" required></textarea>
           </div>
 
           <button type="submit" class="btn btn-success">📥 Баарын бир базага киргизүү</button>
         </form>
 
-        <!-- БАЗАДАГЫ СУРООЛОРДУ ЧЫПКАЛОО ЖАНА ТИЗМЕСИ -->
+        <!-- БАЗАДАГЫ СУРООЛОР -->
         <div class="questions-header-row">
           <h3>Базадагы суроолор (<span id="total-q-count">0</span>)</h3>
           <select id="admin-filter-class" onchange="renderAdminQuestions()">
